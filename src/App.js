@@ -1,23 +1,47 @@
-import logo from './logo.svg';
 import './App.css';
+import {useState} from 'react';
+import {
+  Routes,
+  Route,
+} from "react-router-dom";
+import {Nav, Container} from 'react-bootstrap';
+import Login from './Components/Login';
+import Authors from './Components/Authors';
+import Home from './Components/Home';
+
 
 function App() {
+  const [token, setToken] = useState();
+
+  if(!token) {
+    return <Login setToken={setToken} />
+  }
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+        <h1>
+          Aurhors example
+        </h1>
+        <Nav variant='pills'>
+          <Nav.Item>
+            <Nav.Link href="/">Home</Nav.Link>
+          </Nav.Item>
+          <Nav.Item>
+            <Nav.Link href="/authors">Authors</Nav.Link>
+          </Nav.Item>
+          <Nav.Item>
+            <Nav.Link href="/login">Login</Nav.Link>
+          </Nav.Item>
+        </Nav>
+        
       </header>
+      <Container>
+        <Routes>
+          <Route path="/" element={ <Home/> } />
+          <Route path="/authors" element={ <Authors/> } />
+          <Route path="/login" element={ <Login/> } />
+        </Routes>
+      </Container>
     </div>
   );
 }
