@@ -1,31 +1,6 @@
 import React, { useState } from 'react';
-import {Form, Button} from 'react-bootstrap';
+import {Form, Button, Alert} from 'react-bootstrap';
 import PropTypes from 'prop-types';
-
-// GET request using fetch with error handling
-fetch('http://localhost/authors/public/', {
-  method: "GET",
-  mode: "cors"
-})
-.then(async response => {
-    const data = await response.json();
-    console.log(data);
-    // check for error response
-    if (!response.ok) {
-        // get error message from body or default to response statusText
-        const error = (data && data.message) || response.statusText;
-        console.error(data);
-        return Promise.reject(error);
-    }
-
-})
-.catch(error => {
-    //this.setState({ errorMessage: error.toString() });
-    console.error('There was an error!', error);
-});
-
-
-
 
 async function loginUser(credentials) {
     
@@ -34,14 +9,16 @@ async function loginUser(credentials) {
         mode: "cors"
       })
     .then(response => response.json())
-    .then(data => data.api_key)
+    .then(data => data.api_key ?? null)
    }
 
    
 const Login = ({setToken}) => {
     let [email, setEmail] = useState();
     let [password, setPassword] = useState();
+    
 
+    
     const handleSubmit = async e => {
         e.preventDefault();
         const token = await loginUser({
@@ -49,10 +26,18 @@ const Login = ({setToken}) => {
           password
         });
         setToken(token);
+        console.log('token: '+token);
+ 
       }
-
+      console.log('local token: ' + localStorage.getItem('token'));
+    if(localStorage.getItem('token') != null && localStorage.getItem('token') != 'null') {
+      localStorage.removeItem('token');
+      
+      window.location.replace('/');
+      return <Alert variant='success'>Logout</Alert>
+    }
     return (
-    <>
+    <>    
     <Form onSubmit={handleSubmit}>
         <Form.Group className="mb-3" controlId="formBasicEmail">
           <Form.Label>Email address</Form.Label>
