@@ -37,13 +37,13 @@ function App() {
         
       </header>
       <Container>        
-        {access_token === 'null' || access_token === null ? <Login setToken={setToken} /> : 
+        
         <Routes>
         <Route path="/" element={ <Home/> } />
-        <Route path="/authors" element={ <Authors/> } />
+        <Route path="/authors" element= {access_token === 'null' || access_token === null ? <Login setToken={setToken} /> :  <Authors/> } />
         <Route path="/login" element={ <Login setToken={setToken} /> } />
       </Routes>
-      }
+      
       </Container>
     </div>
   );
