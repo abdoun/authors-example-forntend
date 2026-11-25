@@ -15,6 +15,11 @@ const Home = () => {
                 <p>Secure authentication via JWT tokens stored in local storage.</p>
                 <p>Dynamic routing to manage different views (Home, Authors, Login).</p>
                 <p>Real-time data fetching from the Laravel API.</p>
+                <p><strong>Technologies Used:</strong></p>
+                <p>React.js, Laravel Lumen, MySQL</p>
+                <p><strong>Contact:</strong></p>
+                <p>For any inquiries, please contact us at abdoun79@gmail.com, Github: https://github.com/abdoun</p>
+                <p><strong>Note:</strong> This project is a demonstration of integrating React with a Laravel backend, showcasing hobby practices in exercise web development.</p>
             </div>
         </>
     );
