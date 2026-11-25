@@ -9,7 +9,7 @@ const Home = () => {
                 <hr />
                 <p><strong>Project Overview:</strong></p>
                 <ul>
-                    <li>This is a modern React.js single-page application designed for seamless user experiences.</li>
+                    <li>This is a React.js single-page application designed for seamless user experiences.</li>
                     <li>The backend is powered by Laravel Lumen, a lightweight PHP micro-framework ideal for API development.</li>
                     <li>Data persistence and business logic are managed through a robust MySQL database.</li>
                 </ul>
