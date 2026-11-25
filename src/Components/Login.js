@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 async function loginUser(credentials) {
     
     return fetch('http://authors-backend/api/login?email=' + credentials.email + '&password=' + credentials.password, {
-        method: "POST",
+        method: "GET",
       })
     .then(response => response.json())
     .then(data => data.api_key ?? null)
