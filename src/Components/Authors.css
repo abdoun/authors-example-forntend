@@ -16,14 +16,14 @@
   padding-bottom: 0.5rem;
 }
 
-.loading, .error {
+.loading-message, .error-message {
   text-align: center;
   padding: 2rem;
   font-size: 1.1rem;
   color: #7f8c8d;
 }
 
-.error {
+.error-message {
   color: #e74c3c;
 }
 

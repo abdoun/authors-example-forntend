@@ -60,7 +60,7 @@ const Authors = () => {
   // 4. Render the list of authors
   return (
     <div className="authors-container">
-      <h1>All Authors</h1>
+      <h2>All Authors</h2>
       {authors.length > 0 ? (
         <table className="authors-table">
           <thead>
