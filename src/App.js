@@ -21,7 +21,7 @@ function App() {
     <div className="App">
       <header className="App-header">
         <h1>
-          Aurhors example
+          Authors example
         </h1>
         <Nav variant='pills'>
           <Nav.Item>
@@ -31,13 +31,13 @@ function App() {
             <Nav.Link href="/authors">Authors</Nav.Link>
           </Nav.Item>
           <Nav.Item>
-            <Nav.Link href="/login">{access_token != 'null' || access_token == null ? 'Logout' : 'login'}</Nav.Link>
+            <Nav.Link href="/login">{access_token !== 'null' && access_token !== null ? 'Logout' : 'login'}</Nav.Link>
           </Nav.Item>
         </Nav>
         
       </header>
       <Container>        
-        {access_token == 'null' || access_token == null ? <Login setToken={setToken} /> : 
+        {access_token === 'null' || access_token === null ? <Login setToken={setToken} /> : 
         <Routes>
         <Route path="/" element={ <Home/> } />
         <Route path="/authors" element={ <Authors/> } />
