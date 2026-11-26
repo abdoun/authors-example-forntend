@@ -10,11 +10,7 @@ const Authors = () => {
   useEffect(() => {
     const fetchAuthors = async () => {
       try {
-        const rawToken = localStorage.getItem('token');
-        console.log('Raw token:', rawToken);
-
-        const token = rawToken.replace(/^"(.*)"$/, '$1'); // remove wrapping quotes if any
-        console.log('Clean token:', token);
+        const token = localStorage.getItem('token');
 
         const response = await fetch('http://authors-backend/api/authors', {
             method: 'GET',

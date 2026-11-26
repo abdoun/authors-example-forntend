@@ -2,6 +2,22 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## Authentication
+
+Login is handled by the separate auth backend (`user-auth-node-mysql`): this
+app POSTs credentials to `<REACT_APP_AUTH_API_URL>/login`, stores the returned
+JWT in `localStorage.token`, and sends it as `Authorization: Bearer <jwt>` to
+the authors API.
+
+The JWT is also published in a `jwt_token` cookie scoped to `localhost`, so it
+is shared with `user-auth-react` on `localhost:3001`: logging in at either app
+signs you in to the other, and logging out at either app clears both. Open both
+apps via `localhost` (not `127.0.0.1`), since cookies are host-specific.
+
+Set `REACT_APP_AUTH_API_URL` in a `.env` file (or your build environment) to
+the auth backend base URL. It defaults to `http://localhost:3000` for local
+development.
+
 ## Available Scripts
 
 In the project directory, you can run:
