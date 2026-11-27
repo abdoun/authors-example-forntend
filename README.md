@@ -36,7 +36,8 @@ cp .env.example .env
 | `FRONTEND_PORT` | Host port that publishes the frontend | `8088` |
 | `AUTHORS_BACKEND_URL` | Authors backend address **inside** the Docker network, used by nginx | `http://authors-example-backend:8078` |
 | `AUTHORS_API_URL` | Authors API base URL seen by the browser; `/api` uses the nginx proxy | `/api` |
-| `AUTH_API_URL` | Separate auth backend base URL seen by the browser (`POST /login`) | `http://localhost:3000` |
+| `AUTH_BACKEND_URL` | Auth backend address **inside** the Docker network, used by nginx | `http://user-auth-api:3000` |
+| `AUTH_API_URL` | Auth API base URL seen by the browser; `/auth` uses the nginx proxy | `/auth` |
 
 For this setup:
 
@@ -44,26 +45,31 @@ For this setup:
 FRONTEND_PORT=8088
 AUTHORS_BACKEND_URL=http://authors-example-backend:8078
 AUTHORS_API_URL=/api
-AUTH_API_URL=http://<debian-server-ip>:<auth-backend-port>
+AUTH_BACKEND_URL=http://user-auth-api:3000
+AUTH_API_URL=/auth
 ```
 
-### 2. Put the backend on the same network
+### 2. Put both backends on shared networks
 
-A container name only resolves on a user-defined Docker network. Create the
-network once and attach the already-running backend container to it:
+Container names only resolve on user-defined Docker networks. This compose
+file joins two:
 
-```sh
-docker network create authors-net
-docker network connect authors-net authors-example-backend
-```
+- `authors-net` — create it once and attach the authors backend to it:
 
-If the backend is started by its own compose file, add this to it instead:
+  ```sh
+  docker network create authors-net
+  docker network connect authors-net authors-example-backend
+  ```
 
-```yaml
-networks:
-  authors-net:
-    external: true
-```
+- `user-auth-node-mysql_user-auth-network` — created by the
+  `user-auth-node-mysql` stack and shared with `user-auth-react`. It must
+  already exist before starting this stack (declared `external: true`).
+  `AUTH_BACKEND_URL` defaults to `http://user-auth-api:3000`, which is the
+  auth API container on that network.
+
+If a backend is managed by its own compose file, declare the network there as
+`external: true` with the same `name` instead of connecting the container
+manually.
 
 ### 3. Build and start
 
@@ -81,17 +87,27 @@ Edit `.env` and recreate the container (no image rebuild needed):
 docker compose up -d --force-recreate
 ```
 
-### Why the `/api` proxy?
+### Why the `/api` and `/auth` proxies?
 
-A browser cannot resolve `authors-example-backend`; that name only exists on
-the Docker network. The app therefore calls the same-origin path
-`/api/authors` and nginx forwards it to
-`AUTHORS_BACKEND_URL/api/authors` (i.e. `http://authors-example-backend:8078/api/authors`).
-This also avoids CORS for the authors API. To call the backend directly from
-the browser instead, set `AUTHORS_API_URL` to a browser-resolvable URL ending
-in `/api` (for example `http://<server-ip>:8078/api`) and enable CORS on the
-backend. The separate auth backend is called directly by the browser, so it
-must also be browser-reachable and allow CORS.
+Browsers cannot resolve Docker container names; those names only exist on the
+Docker network. The app therefore calls same-origin paths — `/api/authors` and
+`/auth/login` — and nginx forwards them to `AUTHORS_BACKEND_URL` and
+`AUTH_BACKEND_URL`. The `/auth` prefix is stripped upstream, so
+`POST /auth/login` becomes `POST http://user-auth-api:3000/login`. This also
+avoids CORS configuration for both APIs. To call a backend directly from the
+browser instead, set its `*_API_URL` to a browser-resolvable URL and enable
+CORS on that backend.
+
+### Sharing the JWT with `user-auth-react`
+
+No extra network is needed for this: the token is shared through the
+`jwt_token` cookie, which is scoped to a **host**, not a port. Open both apps
+using the same host — `http://<server-ip>:8083` for `user-auth-react` and
+`http://<server-ip>:8088` for this app. Do not mix `localhost`, `127.0.0.1` and
+the server IP. Logging in on either app then signs you in to the other, and
+logging out on either clears both. `localStorage` is origin-scoped and cannot
+be shared across ports, so this app promotes the cookie into its own
+`localStorage` in `useToken.js`.
 
 ### Useful commands
 

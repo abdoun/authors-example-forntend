@@ -10,7 +10,11 @@ services:
       - .env
     networks:
       - authors-net
+      - user-auth-network
 
 networks:
   authors-net:
     name: authors-net
+  user-auth-network:
+    external: true
+    name: user-auth-node-mysql_user-auth-network
