@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { authorsEndpoint } from '../config';
 
 const Authors = () => {
   // 1. State for data, loading, and error
@@ -12,7 +13,7 @@ const Authors = () => {
       try {
         const token = localStorage.getItem('token');
 
-        const response = await fetch('http://authors-backend/api/authors', {
+        const response = await fetch(authorsEndpoint(), {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',

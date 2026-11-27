@@ -1,0 +1,16 @@
+services:
+  authors-example-frontend:
+    build: .
+    image: authors-example-frontend:latest
+    container_name: authors-example-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-8088}:80"
+    env_file:
+      - .env
+    networks:
+      - authors-net
+
+networks:
+  authors-net:
+    name: authors-net

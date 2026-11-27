@@ -1,0 +1,12 @@
+.git
+.github
+.idea
+.aider*
+node_modules
+build
+coverage
+.env
+.env.*
+!.env.example
+npm-debug.log*
+README.md

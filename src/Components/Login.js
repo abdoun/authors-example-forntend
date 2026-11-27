@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {Form, Button, Alert} from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import { clearSharedToken } from './sharedToken';
-
-const AUTH_API_URL = process.env.REACT_APP_AUTH_API_URL || 'http://localhost:3000';
+import { AUTH_API_URL } from '../config';
 
 async function loginUser(credentials) {
   const response = await fetch(`${AUTH_API_URL}/login`, {

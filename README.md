@@ -15,8 +15,91 @@ signs you in to the other, and logging out at either app clears both. Open both
 apps via `localhost` (not `127.0.0.1`), since cookies are host-specific.
 
 Set `REACT_APP_AUTH_API_URL` in a `.env` file (or your build environment) to
-the auth backend base URL. It defaults to `http://localhost:3000` for local
-development.
+the auth backend base URL for local development. It defaults to
+`http://localhost:3000`. In Docker, use `AUTH_API_URL` in `.env` instead (see
+below).
+
+## Docker deployment (Debian server)
+
+The image builds the React app once and serves it with nginx. API URLs come
+from a `.env` file at **container start**, so changing them does not require
+rebuilding the image.
+
+### 1. Create `.env`
+
+```sh
+cp .env.example .env
+```
+
+| Variable | Meaning | Default |
+| --- | --- | --- |
+| `FRONTEND_PORT` | Host port that publishes the frontend | `8088` |
+| `AUTHORS_BACKEND_URL` | Authors backend address **inside** the Docker network, used by nginx | `http://authors-example-backend:8078` |
+| `AUTHORS_API_URL` | Authors API base URL seen by the browser; `/api` uses the nginx proxy | `/api` |
+| `AUTH_API_URL` | Separate auth backend base URL seen by the browser (`POST /login`) | `http://localhost:3000` |
+
+For this setup:
+
+```env
+FRONTEND_PORT=8088
+AUTHORS_BACKEND_URL=http://authors-example-backend:8078
+AUTHORS_API_URL=/api
+AUTH_API_URL=http://<debian-server-ip>:<auth-backend-port>
+```
+
+### 2. Put the backend on the same network
+
+A container name only resolves on a user-defined Docker network. Create the
+network once and attach the already-running backend container to it:
+
+```sh
+docker network create authors-net
+docker network connect authors-net authors-example-backend
+```
+
+If the backend is started by its own compose file, add this to it instead:
+
+```yaml
+networks:
+  authors-net:
+    external: true
+```
+
+### 3. Build and start
+
+```sh
+docker compose up -d --build
+```
+
+Then open `http://<debian-server-ip>:8088`.
+
+### 4. Changing configuration later
+
+Edit `.env` and recreate the container (no image rebuild needed):
+
+```sh
+docker compose up -d --force-recreate
+```
+
+### Why the `/api` proxy?
+
+A browser cannot resolve `authors-example-backend`; that name only exists on
+the Docker network. The app therefore calls the same-origin path
+`/api/authors` and nginx forwards it to
+`AUTHORS_BACKEND_URL/api/authors` (i.e. `http://authors-example-backend:8078/api/authors`).
+This also avoids CORS for the authors API. To call the backend directly from
+the browser instead, set `AUTHORS_API_URL` to a browser-resolvable URL ending
+in `/api` (for example `http://<server-ip>:8078/api`) and enable CORS on the
+backend. The separate auth backend is called directly by the browser, so it
+must also be browser-reachable and allow CORS.
+
+### Useful commands
+
+```sh
+docker compose logs -f authors-example-frontend
+docker compose ps
+docker compose down
+```
 
 ## Available Scripts
 
