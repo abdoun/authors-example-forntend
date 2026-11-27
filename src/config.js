@@ -27,3 +27,28 @@ export const AUTHORS_API_URL = withoutTrailingSlash(
 );
 
 export const authorsEndpoint = () => `${AUTHORS_API_URL}/authors`;
+
+/**
+ * Where the "register" link points. Set USER_AUTH_REGISTER_URL in .env when
+ * the companion app is reached through a reverse proxy or a custom hostname.
+ * Without it, IP/localhost visitors get the direct port 8083 URL and domain
+ * visitors get /register on the same hostname.
+ */
+function defaultRegisterUrl() {
+  if (typeof window === 'undefined') {
+    return 'http://localhost:8083/register';
+  }
+
+  const { protocol, hostname } = window.location;
+  const isIpOrLocal =
+    hostname === 'localhost' || /^\d{1,3}(?:\.\d{1,3}){3}$/.test(hostname);
+
+  return isIpOrLocal
+    ? `${protocol}//${hostname}:8083/register`
+    : `${protocol}//${hostname}/register`;
+}
+
+export const REGISTER_URL =
+  runtimeConfig.USER_AUTH_REGISTER_URL ||
+  process.env.REACT_APP_USER_AUTH_REGISTER_URL ||
+  defaultRegisterUrl();

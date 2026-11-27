@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {Form, Button, Alert} from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import { clearSharedToken } from './sharedToken';
-import { AUTH_API_URL } from '../config';
+import { AUTH_API_URL, REGISTER_URL } from '../config';
 
 async function loginUser(credentials) {
   const response = await fetch(`${AUTH_API_URL}/login`, {
@@ -59,15 +59,16 @@ const Login = ({setToken}) => {
   return (
   <>
     {error && (
-      <Alert variant='danger'>
-        <div>{error}</div>
+      <Alert variant='danger' className="login-error">
+        <Alert.Heading className="h6 mb-1">Couldn't sign in</Alert.Heading>
+        <p className="mb-1">{error}</p>
         {!error.includes('Too many login attempts') && (
-          <div className="mt-2">
+          <p className="mb-0 small">
             Don't have an account?{' '}
-            <a href={`http://${window.location.hostname}:8083/register`}>
+            <a href={REGISTER_URL} target="_blank" rel="noopener noreferrer">
               Register in user-auth-react
             </a>
-          </div>
+          </p>
         )}
       </Alert>
     )}
