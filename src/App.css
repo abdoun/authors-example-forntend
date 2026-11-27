@@ -2,6 +2,10 @@
 @import 'bootstrap/dist/css/bootstrap.min.css';
 
 .App {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f5f6f8;
   text-align: center;
 }
 
@@ -17,14 +21,53 @@
 }
 
 .App-header {
-  background-color: #282c34;
-  /* min-height: 100vh; */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  padding: 22px 16px 16px;
+  background: linear-gradient(135deg, #1f2530 0%, #343b48 100%);
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.18);
+  color: #fff;
+}
+
+.App-brand {
+  margin: 0 0 14px;
+  font-size: 1.9rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.App-brand::after {
+  content: '';
+  display: block;
+  width: 56px;
+  height: 3px;
+  margin: 8px auto 0;
+  border-radius: 2px;
+  background: #ffc107;
+}
+
+.App-nav .nav-link {
+  margin: 0 2px;
+  padding: 0.4rem 1rem !important;
+  border-radius: 20px !important;
+  font-size: 0.95rem;
+}
+
+.App-nav .nav-link:hover,
+.App-nav .nav-link:focus {
+  color: #fff !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+
+.App-nav button.nav-link {
+  background: transparent;
+  border: 0;
+  color: rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+}
+
+.App > .container {
+  flex: 1;
+  padding-top: 26px;
+  padding-bottom: 32px;
 }
 
 .App-link {
@@ -80,23 +123,57 @@
 }
 
 .home-content {
-  padding: 20px;
-  max-width: 800px;
+  max-width: 860px;
   margin: 0 auto;
+  padding: 28px 32px;
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
   text-align: left;
 }
 
-/* Privacy nav item rendered as a button */
-.App-header button.nav-link {
-  background: transparent;
+.home-content h1 {
+  margin-bottom: 14px;
+  color: #242936;
+  font-size: 1.7rem;
+}
+
+.authors-container {
+  padding: 24px;
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
+  text-align: left;
+}
+
+.App-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 24px;
+  background: #242936;
+  color: #c9ced6;
+  font-size: 0.85rem;
+}
+
+.App-footer button {
+  padding: 0;
   border: 0;
-  color: rgba(255, 255, 255, 0.55);
+  background: transparent;
+  color: #ffc107;
   cursor: pointer;
 }
 
-.App-header button.nav-link:hover,
-.App-header button.nav-link:focus {
-  color: #fff;
+.App-footer a {
+  color: #ffc107;
+  text-decoration: none;
+}
+
+.App-footer a:hover {
+  text-decoration: underline;
 }
 
 /* Demo-only warning banner */

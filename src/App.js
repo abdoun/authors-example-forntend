@@ -10,6 +10,7 @@ import Authors from './Components/Authors';
 import Home from './Components/Home';
 import DemoNotice from './Components/DemoNotice';
 import PrivacyPolicy from './Components/PrivacyPolicy';
+import { REGISTER_URL } from './config';
 import useToken from './Components/useToken';
 
 function App() {
@@ -19,10 +20,8 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>
-          Authors example
-        </h1>
-        <Nav variant='pills'>
+        <h1 className="App-brand">Authors example</h1>
+        <Nav variant='pills' className="App-nav">
           <Nav.Item>
             <Nav.Link href="/">Home</Nav.Link>
           </Nav.Item>
@@ -31,6 +30,11 @@ function App() {
           </Nav.Item>
           <Nav.Item>
             <Nav.Link href="/login">{token ? 'Logout' : 'Login'}</Nav.Link>
+          </Nav.Item>
+          <Nav.Item>
+            <Nav.Link href={REGISTER_URL} target="_blank" rel="noopener noreferrer">
+              Register
+            </Nav.Link>
           </Nav.Item>
           <Nav.Item>
             <Nav.Link as="button" onClick={() => setShowPrivacy(true)}>Privacy</Nav.Link>
@@ -45,6 +49,13 @@ function App() {
           <Route path="/login" element={<Login setToken={setToken} />} />
         </Routes>
       </Container>
+      <footer className="App-footer">
+        <span>Authors Example · demo application — test data only</span>
+        <span className="d-flex gap-3">
+          <button type="button" onClick={() => setShowPrivacy(true)}>Privacy policy</button>
+          <a href={REGISTER_URL} target="_blank" rel="noopener noreferrer">Register</a>
+        </span>
+      </footer>
       <PrivacyPolicy show={showPrivacy} onHide={() => setShowPrivacy(false)} />
     </div>
   );
