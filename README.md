@@ -57,7 +57,8 @@ FRONTEND_PORT=8088
 Container names only resolve on user-defined Docker networks. This compose
 file joins two:
 
-- `authors-net` — create it once and attach the authors backend to it:
+- `authors-net` — declared `external: true`, so create it once and attach the
+  authors backend to it:
 
   ```sh
   docker network create authors-net
