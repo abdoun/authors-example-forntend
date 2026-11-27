@@ -30,22 +30,29 @@ export const authorsEndpoint = () => `${AUTHORS_API_URL}/authors`;
 
 /**
  * Where the "register" link points. Set USER_AUTH_REGISTER_URL in .env when
- * the companion app has its own hostname. The default is the app root: the
- * auth app's nginx proxies /register to its API, so the /register SPA route
- * is not reachable by direct URL. Its navbar has a Register link.
+ * the companion app uses a different hostname than the one derived here.
+ * Without it, IP/localhost visitors get the direct 8083 URL, and
+ * authors-example.<domain> visitors get auth.<domain>/register.
  */
 function defaultRegisterUrl() {
   if (typeof window === 'undefined') {
-    return 'http://localhost:8083/';
+    return 'http://localhost:8083/register';
   }
 
   const { protocol, hostname } = window.location;
   const isIpOrLocal =
     hostname === 'localhost' || /^\d{1,3}(?:\.\d{1,3}){3}$/.test(hostname);
 
-  return isIpOrLocal
-    ? `${protocol}//${hostname}:8083/`
-    : `${protocol}//${hostname}/`;
+  if (isIpOrLocal) {
+    return `${protocol}//${hostname}:8083/register`;
+  }
+
+  const prefix = 'authors-example.';
+  const authHost = hostname.startsWith(prefix)
+    ? `auth.${hostname.slice(prefix.length)}`
+    : hostname;
+
+  return `${protocol}//${authHost}/register`;
 }
 
 export const REGISTER_URL =
