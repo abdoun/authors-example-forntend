@@ -294,7 +294,8 @@
   font-size: 0.85em;
 }
 
-/* Login failure message */
-.login-error p:last-child {
+/* Login messages */
+.login-error p:last-child,
+.login-success p:last-child {
   margin-bottom: 0;
 }

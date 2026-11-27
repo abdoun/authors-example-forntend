@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {Form, Button, Alert} from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { clearSharedToken } from './sharedToken';
 import { AUTH_API_URL, REGISTER_URL } from '../config';
@@ -22,9 +23,12 @@ async function loginUser(credentials) {
 
 
 const Login = ({setToken}) => {
+  const navigate = useNavigate();
+  const redirectTimer = useRef(null);
   let [email, setEmail] = useState();
   let [password, setPassword] = useState();
   let [error, setError] = useState(null);
+  let [success, setSuccess] = useState(false);
   let [loggedOut, setLoggedOut] = useState(false);
 
   // Visiting /login while signed in logs out, but a fresh login must not be
@@ -38,16 +42,23 @@ const Login = ({setToken}) => {
     }
   }, []);
 
+  useEffect(() => () => clearTimeout(redirectTimer.current), []);
 
   const handleSubmit = async e => {
     e.preventDefault();
     setError(null);
+    setSuccess(false);
     try {
       const token = await loginUser({
         email,
         password
       });
+      if (!token) {
+        throw new Error('Login failed: the server did not return a token');
+      }
       setToken(token);
+      setSuccess(true);
+      redirectTimer.current = setTimeout(() => navigate('/authors'), 1500);
     } catch (err) {
       setError(err.message);
     }
@@ -72,7 +83,18 @@ const Login = ({setToken}) => {
         )}
       </Alert>
     )}
-    <Form onSubmit={handleSubmit}>
+    {success && (
+      <Alert variant='success' className="login-success">
+        <Alert.Heading className="h6 mb-1">Login successful</Alert.Heading>
+        <p className="mb-1">You are signed in. Taking you to the Authors page...</p>
+        <p className="mb-0 small">
+          <a href="/authors">Go to Authors now</a>
+          {' · '}
+          <a href="/">Go to Home</a>
+        </p>
+      </Alert>
+    )}
+    {!success && <Form onSubmit={handleSubmit}>
         <Form.Group className="mb-3" controlId="formBasicEmail">
           <Form.Label>Email address</Form.Label>
           <Form.Control type="email" placeholder="Enter email" onChange={e => setEmail(e.target.value)} required />
@@ -89,7 +111,7 @@ const Login = ({setToken}) => {
         <Button variant="primary" type="submit">
           Submit
         </Button>
-      </Form>
+      </Form>}
   </>
   );
 };
