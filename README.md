@@ -66,7 +66,7 @@ file joins two:
 
   The backend container is named `authors-api` and Apache listens on port
   `80` inside it, so the default upstream is `http://authors-api:80`. Port
-  `8078` (or `8087` by default) is only the host-published port.
+  `8087` is only the host-published port (Apache listens on `80` inside).
 
 - `user-auth-node-mysql_user-auth-network` — created by the
   `user-auth-node-mysql` stack and shared with `user-auth-react`. It must
@@ -94,18 +94,18 @@ Edit `.env` and recreate the container (no image rebuild needed):
 docker compose up -d --force-recreate
 ```
 
-### Why not just use port 8078?
+### Why not just use port 8087?
 
-`8078` (and the auth API's `3002`) are **host-published** ports — that's how a
+`8087` (and the auth API's `3002`) are **host-published** ports — that's how a
 browser reaches a backend from Tailscale, the home LAN or the internet. From
-*inside* this frontend container, `localhost:8078` would mean the frontend
+*inside* this frontend container, `localhost:8087` would mean the frontend
 container itself, not the backend. nginx needs the backend's actual address,
 so `AUTHORS_BACKEND_URL` accepts any address the **server** can reach:
 
 ```env
 AUTHORS_BACKEND_URL=http://authors-api:80          # Docker network (default)
-AUTHORS_BACKEND_URL=http://100.x.y.z:8078          # Tailscale IP
-AUTHORS_BACKEND_URL=http://192.168.1.50:8078       # home LAN
+AUTHORS_BACKEND_URL=http://100.x.y.z:8087          # Tailscale IP
+AUTHORS_BACKEND_URL=http://192.168.1.50:8087       # home LAN
 AUTHORS_BACKEND_URL=https://api.example.com        # public host
 ```
 
@@ -114,7 +114,7 @@ The same applies to `AUTH_BACKEND_URL`, e.g. `http://100.x.y.z:3002`.
 The browser still calls same-origin paths — `/api/authors` and `/auth/login`
 on port 8088 — and nginx forwards them to those addresses. The `/auth` prefix
 is stripped upstream, so `POST /auth/login` becomes
-`POST http://user-auth-api:3000/login`. Calling `http://<ip>:8078/api/authors`
+`POST http://user-auth-api:3000/login`. Calling `http://<ip>:8087/api/authors`
 directly from the browser would be cross-origin from `:8088`, and the Lumen
 authors API sends no CORS headers, so the browser would block it. The proxy
 avoids that. The auth API does support CORS via `CORS_ORIGIN`, but the proxy
