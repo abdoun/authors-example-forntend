@@ -58,7 +58,19 @@ const Login = ({setToken}) => {
   }
   return (
   <>
-    {error && <Alert variant='danger'>{error}</Alert>}
+    {error && (
+      <Alert variant='danger'>
+        <div>{error}</div>
+        {!error.includes('Too many login attempts') && (
+          <div className="mt-2">
+            Don't have an account?{' '}
+            <a href={`http://${window.location.hostname}:8083/register`}>
+              Register in user-auth-react
+            </a>
+          </div>
+        )}
+      </Alert>
+    )}
     <Form onSubmit={handleSubmit}>
         <Form.Group className="mb-3" controlId="formBasicEmail">
           <Form.Label>Email address</Form.Label>
