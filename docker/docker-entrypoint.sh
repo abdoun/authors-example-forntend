@@ -4,7 +4,7 @@ set -eu
 # Defaults keep the image usable even without a .env file.
 AUTH_API_URL="${AUTH_API_URL:-${REACT_APP_AUTH_API_URL:-/auth}}"
 AUTHORS_API_URL="${AUTHORS_API_URL:-${REACT_APP_AUTHORS_API_URL:-/api}}"
-AUTHORS_BACKEND_URL="${AUTHORS_BACKEND_URL:-http://authors-example-backend:8078}"
+AUTHORS_BACKEND_URL="${AUTHORS_BACKEND_URL:-http://authors-api:80}"
 AUTH_BACKEND_URL="${AUTH_BACKEND_URL:-http://user-auth-api:3000}"
 export AUTH_API_URL AUTHORS_API_URL AUTHORS_BACKEND_URL AUTH_BACKEND_URL
 

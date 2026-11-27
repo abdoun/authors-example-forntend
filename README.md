@@ -31,22 +31,25 @@ rebuilding the image.
 cp .env.example .env
 ```
 
+Only one setting is required:
+
 | Variable | Meaning | Default |
 | --- | --- | --- |
 | `FRONTEND_PORT` | Host port that publishes the frontend | `8088` |
-| `AUTHORS_BACKEND_URL` | Authors backend address **inside** the Docker network, used by nginx | `http://authors-example-backend:8078` |
-| `AUTHORS_API_URL` | Authors API base URL seen by the browser; `/api` uses the nginx proxy | `/api` |
-| `AUTH_BACKEND_URL` | Auth backend address **inside** the Docker network, used by nginx | `http://user-auth-api:3000` |
-| `AUTH_API_URL` | Auth API base URL seen by the browser; `/auth` uses the nginx proxy | `/auth` |
+
+The rest are optional overrides:
+
+| Variable | Meaning | Default |
+| --- | --- | --- |
+| `AUTHORS_BACKEND_URL` | Address nginx forwards `/api/*` to — Docker name, LAN/Tailscale IP or public host | `http://authors-api:80` |
+| `AUTH_BACKEND_URL` | Address nginx forwards `/auth/*` to | `http://user-auth-api:3000` |
+| `AUTHORS_API_URL` | Advanced: browser-facing path for the authors API | `/api` |
+| `AUTH_API_URL` | Advanced: browser-facing path for the auth API | `/auth` |
 
 For this setup:
 
 ```env
 FRONTEND_PORT=8088
-AUTHORS_BACKEND_URL=http://authors-example-backend:8078
-AUTHORS_API_URL=/api
-AUTH_BACKEND_URL=http://user-auth-api:3000
-AUTH_API_URL=/auth
 ```
 
 ### 2. Put both backends on shared networks
@@ -58,8 +61,12 @@ file joins two:
 
   ```sh
   docker network create authors-net
-  docker network connect authors-net authors-example-backend
+  docker network connect authors-net authors-api
   ```
+
+  The backend container is named `authors-api` and Apache listens on port
+  `80` inside it, so the default upstream is `http://authors-api:80`. Port
+  `8078` (or `8087` by default) is only the host-published port.
 
 - `user-auth-node-mysql_user-auth-network` — created by the
   `user-auth-node-mysql` stack and shared with `user-auth-react`. It must
@@ -87,16 +94,31 @@ Edit `.env` and recreate the container (no image rebuild needed):
 docker compose up -d --force-recreate
 ```
 
-### Why the `/api` and `/auth` proxies?
+### Why not just use port 8078?
 
-Browsers cannot resolve Docker container names; those names only exist on the
-Docker network. The app therefore calls same-origin paths — `/api/authors` and
-`/auth/login` — and nginx forwards them to `AUTHORS_BACKEND_URL` and
-`AUTH_BACKEND_URL`. The `/auth` prefix is stripped upstream, so
-`POST /auth/login` becomes `POST http://user-auth-api:3000/login`. This also
-avoids CORS configuration for both APIs. To call a backend directly from the
-browser instead, set its `*_API_URL` to a browser-resolvable URL and enable
-CORS on that backend.
+`8078` (and the auth API's `3002`) are **host-published** ports — that's how a
+browser reaches a backend from Tailscale, the home LAN or the internet. From
+*inside* this frontend container, `localhost:8078` would mean the frontend
+container itself, not the backend. nginx needs the backend's actual address,
+so `AUTHORS_BACKEND_URL` accepts any address the **server** can reach:
+
+```env
+AUTHORS_BACKEND_URL=http://authors-api:80          # Docker network (default)
+AUTHORS_BACKEND_URL=http://100.x.y.z:8078          # Tailscale IP
+AUTHORS_BACKEND_URL=http://192.168.1.50:8078       # home LAN
+AUTHORS_BACKEND_URL=https://api.example.com        # public host
+```
+
+The same applies to `AUTH_BACKEND_URL`, e.g. `http://100.x.y.z:3002`.
+
+The browser still calls same-origin paths — `/api/authors` and `/auth/login`
+on port 8088 — and nginx forwards them to those addresses. The `/auth` prefix
+is stripped upstream, so `POST /auth/login` becomes
+`POST http://user-auth-api:3000/login`. Calling `http://<ip>:8078/api/authors`
+directly from the browser would be cross-origin from `:8088`, and the Lumen
+authors API sends no CORS headers, so the browser would block it. The proxy
+avoids that. The auth API does support CORS via `CORS_ORIGIN`, but the proxy
+means you don't have to configure it.
 
 ### Sharing the JWT with `user-auth-react`
 
