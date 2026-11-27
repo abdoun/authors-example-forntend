@@ -36,6 +36,9 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+        # Browsers send Origin on POST even for same-origin requests. The auth
+        # backend rejects unknown origins, and this proxy needs no CORS.
+        proxy_set_header Origin "";
     }
 
     # Client-side routing: let React Router handle unknown paths.
