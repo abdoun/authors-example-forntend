@@ -45,7 +45,7 @@ The rest are optional overrides:
 | `AUTH_BACKEND_URL` | Address nginx forwards `/auth/*` to | `http://user-auth-api:3000` |
 | `AUTHORS_API_URL` | Advanced: browser-facing path for the authors API | `/api` |
 | `AUTH_API_URL` | Advanced: browser-facing path for the auth API | `/auth` |
-| `USER_AUTH_REGISTER_URL` | Optional: where the login error's "Register" link points. Needed when you use a reverse proxy/domain | same host (`IP:8083/register`, or `/register` on a domain) |
+| `USER_AUTH_REGISTER_URL` | Optional: where the login error's "Register" link points. Use the auth app's **root URL** | same host root (`IP:8083/`, or `/` on a domain) |
 
 For this setup:
 
@@ -94,7 +94,7 @@ Example when the apps are reached through domain names:
 
 ```env
 FRONTEND_PORT=8088
-USER_AUTH_REGISTER_URL=https://auth.abdullah-alaswad.link/register
+USER_AUTH_REGISTER_URL=https://auth.abdullah-alaswad.link/
 ```
 
 Edit `.env` and recreate the container (no image rebuild needed):
