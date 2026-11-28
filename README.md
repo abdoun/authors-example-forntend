@@ -21,10 +21,9 @@ below).
 
 ## Docker deployment (Debian server)
 
-The image builds the React app once and serves it with nginx. The browser
-calls both backends **directly**, so the URLs in `.env` must be reachable from
-the client, not just from this container. Values are injected into `/env.js`
-at **container start**, so changing them needs no image rebuild.
+The image builds the React app once and serves it with nginx. API URLs come
+from a `.env` file at **container start**, so changing them does not require
+rebuilding the image.
 
 ### 1. Create `.env`
 
@@ -32,37 +31,54 @@ at **container start**, so changing them needs no image rebuild.
 cp .env.example .env
 ```
 
-| Variable | Meaning |
-| --- | --- |
-| `FRONTEND_PORT` | Host port that publishes this frontend (default `8088`) |
-| `AUTH_API_URL` | Auth API base URL used by the browser; login POSTs to `<AUTH_API_URL>/login` |
-| `AUTHORS_API_URL` | Authors API base URL used by the browser, **including `/api`**; the list is at `<AUTHORS_API_URL>/authors` |
-| `USER_AUTH_REGISTER_URL` | Optional: where the Register link points. Derived from the hostname when unset |
+Only one setting is required:
 
-For direct IP access:
+| Variable | Meaning | Default |
+| --- | --- | --- |
+| `FRONTEND_PORT` | Host port that publishes the frontend | `8088` |
+
+The rest are optional overrides:
+
+| Variable | Meaning | Default |
+| --- | --- | --- |
+| `AUTHORS_BACKEND_URL` | Address nginx forwards `/api/*` to — Docker name, LAN/Tailscale IP or public host | `http://authors-api:80` |
+| `AUTH_BACKEND_URL` | Address nginx forwards `/auth/*` to | `http://user-auth-api:3000` |
+| `AUTHORS_API_URL` | Advanced: browser-facing path for the authors API | `/api` |
+| `AUTH_API_URL` | Advanced: browser-facing path for the auth API | `/auth` |
+| `USER_AUTH_REGISTER_URL` | Optional: where the login error's and header's "Register" link points | `IP:8083/register`, or `auth.<domain>/register` when this app is at `authors-example.<domain>` |
+
+For this setup:
 
 ```env
 FRONTEND_PORT=8088
-AUTH_API_URL=http://100.77.129.7:3002
-AUTHORS_API_URL=http://100.77.129.7:8087/api
 ```
 
-### 2. Configure CORS on the backends
+### 2. Put both backends on shared networks
 
-These calls are cross-origin (different port or host). Add this frontend's
-origin(s) to `CORS_ORIGIN` in `user-auth-node-mysql`'s `.env` (or `.env.docker`
-on the server), then restart the auth container:
+Container names only resolve on user-defined Docker networks. This compose
+file joins two:
 
-```env
-CORS_ORIGIN=...existing...,http://100.77.129.7:8088,https://authors-example.abdullah-alaswad.link
-```
+- `authors-net` — declared `external: true`, so create it once and attach the
+  authors backend to it:
 
-The Authors API (Lumen) already sends `Access-Control-Allow-Origin: *` and
-answers preflight requests, so it needs no change.
+  ```sh
+  docker network create authors-net
+  docker network connect authors-net authors-api
+  ```
 
-If this frontend is opened over HTTPS, both API URLs must be HTTPS too —
-browsers block `http://` calls from an `https://` page as mixed content. Put
-the backends behind the reverse proxy with TLS and use those HTTPS URLs.
+  The backend container is named `authors-api` and Apache listens on port
+  `80` inside it, so the default upstream is `http://authors-api:80`. Port
+  `8087` is only the host-published port (Apache listens on `80` inside).
+
+- `user-auth-node-mysql_user-auth-network` — created by the
+  `user-auth-node-mysql` stack and shared with `user-auth-react`. It must
+  already exist before starting this stack (declared `external: true`).
+  `AUTH_BACKEND_URL` defaults to `http://user-auth-api:3000`, which is the
+  auth API container on that network.
+
+If a backend is managed by its own compose file, declare the network there as
+`external: true` with the same `name` instead of connecting the container
+manually.
 
 ### 3. Build and start
 
@@ -70,9 +86,16 @@ the backends behind the reverse proxy with TLS and use those HTTPS URLs.
 docker compose up -d --build
 ```
 
-Then open `http://<server-ip>:8088` (or your domain).
+Then open `http://<debian-server-ip>:8088`.
 
 ### 4. Changing configuration later
+
+Example when the apps are reached through domain names:
+
+```env
+FRONTEND_PORT=8088
+USER_AUTH_REGISTER_URL=https://auth.abdullah-alaswad.link/register
+```
 
 Edit `.env` and recreate the container (no image rebuild needed):
 
@@ -80,21 +103,42 @@ Edit `.env` and recreate the container (no image rebuild needed):
 docker compose up -d --force-recreate
 ```
 
-### How authentication works
+### Why not just use port 8087?
 
-The login form POSTs directly to the auth backend (`user-auth-node-mysql`),
-which checks the password against its MySQL `users` table and returns a JWT.
-This app stores it in `localStorage` and publishes a host-scoped `jwt_token`
-cookie. The Authors page sends it as `Authorization: Bearer <jwt>` to the
-Authors API, which verifies the signature using the shared `JWT_SECRET`.
+`8087` (and the auth API's `3002`) are **host-published** ports — that's how a
+browser reaches a backend from Tailscale, the home LAN or the internet. From
+*inside* this frontend container, `localhost:8087` would mean the frontend
+container itself, not the backend. nginx needs the backend's actual address,
+so `AUTHORS_BACKEND_URL` accepts any address the **server** can reach:
+
+```env
+AUTHORS_BACKEND_URL=http://authors-api:80          # Docker network (default)
+AUTHORS_BACKEND_URL=http://100.x.y.z:8087          # Tailscale IP
+AUTHORS_BACKEND_URL=http://192.168.1.50:8087       # home LAN
+AUTHORS_BACKEND_URL=https://api.example.com        # public host
+```
+
+The same applies to `AUTH_BACKEND_URL`, e.g. `http://100.x.y.z:3002`.
+
+The browser still calls same-origin paths — `/api/authors` and `/auth/login`
+on port 8088 — and nginx forwards them to those addresses. The `/auth` prefix
+is stripped upstream, so `POST /auth/login` becomes
+`POST http://user-auth-api:3000/login`. Calling `http://<ip>:8087/api/authors`
+directly from the browser would be cross-origin from `:8088`, and the Lumen
+authors API sends no CORS headers, so the browser would block it. The proxy
+avoids that. The auth API does support CORS via `CORS_ORIGIN`, but the proxy
+means you don't have to configure it.
 
 ### Sharing the JWT with `user-auth-react`
 
-The shared cookie is scoped to a **host**, not a port. Open both apps on the
-same host, e.g. `http://<server-ip>:8083` and `http://<server-ip>:8088`. Do not
-mix `localhost`, `127.0.0.1`, the LAN IP and the Tailscale IP — each is a
-separate session. `localStorage` cannot be shared across ports, so this app
-promotes the cookie into its own `localStorage` in `useToken.js`.
+No extra network is needed for this: the token is shared through the
+`jwt_token` cookie, which is scoped to a **host**, not a port. Open both apps
+using the same host — `http://<server-ip>:8083` for `user-auth-react` and
+`http://<server-ip>:8088` for this app. Do not mix `localhost`, `127.0.0.1` and
+the server IP. Logging in on either app then signs you in to the other, and
+logging out on either clears both. `localStorage` is origin-scoped and cannot
+be shared across ports, so this app promotes the cookie into its own
+`localStorage` in `useToken.js`.
 
 ### Useful commands
 

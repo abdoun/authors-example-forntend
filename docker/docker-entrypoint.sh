@@ -1,15 +1,22 @@
 #!/bin/sh
 set -eu
 
-# CRA bakes REACT_APP_* values into the bundle at build time, so generate
-# env.js from the container environment on every start instead.
-AUTH_API_URL="${AUTH_API_URL:-${REACT_APP_AUTH_API_URL:-http://localhost:3002}}"
-AUTHORS_API_URL="${AUTHORS_API_URL:-${REACT_APP_AUTHORS_API_URL:-http://localhost:8087/api}}"
+# Defaults keep the image usable even without a .env file.
+AUTH_API_URL="${AUTH_API_URL:-${REACT_APP_AUTH_API_URL:-/auth}}"
+AUTHORS_API_URL="${AUTHORS_API_URL:-${REACT_APP_AUTHORS_API_URL:-/api}}"
+AUTHORS_BACKEND_URL="${AUTHORS_BACKEND_URL:-http://authors-api:80}"
+AUTH_BACKEND_URL="${AUTH_BACKEND_URL:-http://user-auth-api:3000}"
 USER_AUTH_REGISTER_URL="${USER_AUTH_REGISTER_URL:-${REACT_APP_USER_AUTH_REGISTER_URL:-}}"
-export AUTH_API_URL AUTHORS_API_URL USER_AUTH_REGISTER_URL
+export AUTH_API_URL AUTHORS_API_URL AUTHORS_BACKEND_URL AUTH_BACKEND_URL USER_AUTH_REGISTER_URL
 
+# Only substitute our own variables; nginx variables such as $uri, $host and
+# $request_uri must be left untouched.
 envsubst '${AUTH_API_URL} ${AUTHORS_API_URL} ${USER_AUTH_REGISTER_URL}' \
   < /etc/nginx/app-templates/env.js.template \
   > /usr/share/nginx/html/env.js
+
+envsubst '${AUTHORS_BACKEND_URL} ${AUTH_BACKEND_URL}' \
+  < /etc/nginx/app-templates/default.conf.template \
+  > /etc/nginx/conf.d/default.conf
 
 exec "$@"

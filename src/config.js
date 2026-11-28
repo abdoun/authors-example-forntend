@@ -13,20 +13,17 @@ const runtimeConfig =
 
 const withoutTrailingSlash = (value) => String(value).replace(/\/+$/, '');
 
-// Both URLs are used by the browser directly, so they must be reachable from
-// wherever the app is opened (and use the same scheme as the page — otherwise
-// the browser blocks them as mixed content). Set them in .env for Docker.
 export const AUTH_API_URL = withoutTrailingSlash(
   runtimeConfig.AUTH_API_URL ||
     process.env.REACT_APP_AUTH_API_URL ||
-    'http://localhost:3002'
+    'http://localhost:3000'
 );
 
 // Base URL of the authors API, including its `/api` prefix.
 export const AUTHORS_API_URL = withoutTrailingSlash(
   runtimeConfig.AUTHORS_API_URL ||
     process.env.REACT_APP_AUTHORS_API_URL ||
-    'http://localhost:8087/api'
+    'http://authors-backend/api'
 );
 
 export const authorsEndpoint = () => `${AUTHORS_API_URL}/authors`;
