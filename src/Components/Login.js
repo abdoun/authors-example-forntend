@@ -3,7 +3,7 @@ import {Form, Button, Alert} from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { clearSharedToken } from './sharedToken';
-import { AUTH_API_URL, REGISTER_URL } from '../config';
+import { AUTH_API_URL } from '../config';
 
 async function loginUser(credentials) {
   const response = await fetch(`${AUTH_API_URL}/login`, {
@@ -72,15 +72,7 @@ const Login = ({setToken}) => {
     {error && (
       <Alert variant='danger' className="login-error">
         <Alert.Heading className="h6 mb-1">Couldn't sign in</Alert.Heading>
-        <p className="mb-1">{error}</p>
-        {!error.includes('Too many login attempts') && (
-          <p className="mb-0 small">
-            Don't have an account?{' '}
-            <a href={REGISTER_URL}>
-              Register in user-auth-react
-            </a>
-          </p>
-        )}
+        <p className="mb-0">{error}</p>
       </Alert>
     )}
     {success && (

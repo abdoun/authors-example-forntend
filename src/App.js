@@ -2,14 +2,15 @@ import './App.css';
 import { useState, useEffect } from 'react';
 import {
   Routes,
-  Route
+  Route,
+  useNavigate
 } from "react-router-dom";
-import {Nav, Container} from 'react-bootstrap';
+import {Alert, Nav, Container} from 'react-bootstrap';
 import Authors from './Components/Authors';
 import Home from './Components/Home';
 import DemoNotice from './Components/DemoNotice';
 import PrivacyPolicy from './Components/PrivacyPolicy';
-import { REGISTER_URL, USER_AUTH_URL } from './config';
+import { USER_AUTH_URL } from './config';
 import useToken from './Components/useToken';
 
 function AccountRedirect({ url }) {
@@ -26,9 +27,17 @@ function AccountRedirect({ url }) {
 }
 
 function App() {
-  const { token } = useToken();
+  const navigate = useNavigate();
+  const { token, setToken } = useToken();
   const [showPrivacy, setShowPrivacy] = useState(false);
+  const [loggedOut, setLoggedOut] = useState(false);
   const accountUrl = `${USER_AUTH_URL}${token ? '/profile' : '/login'}`;
+
+  const handleLogout = () => {
+    setToken(null);
+    setLoggedOut(true);
+    navigate('/');
+  };
 
   return (
     <div className="App">
@@ -45,14 +54,21 @@ function App() {
             <Nav.Link href={accountUrl}>Account</Nav.Link>
           </Nav.Item>
           <Nav.Item>
-            <Nav.Link href={REGISTER_URL}>Register</Nav.Link>
-          </Nav.Item>
-          <Nav.Item>
             <Nav.Link as="button" onClick={() => setShowPrivacy(true)}>Privacy</Nav.Link>
           </Nav.Item>
+          {token && (
+            <Nav.Item className="ms-auto">
+              <Nav.Link as="button" onClick={handleLogout}>Logout</Nav.Link>
+            </Nav.Item>
+          )}
         </Nav>
       </header>
       <Container>
+        {loggedOut && (
+          <Alert variant="success" dismissible onClose={() => setLoggedOut(false)}>
+            You have been logged out.
+          </Alert>
+        )}
         <DemoNotice onOpenPrivacy={() => setShowPrivacy(true)} />
         <Routes>
           <Route path="/" element={<Home />} />
@@ -67,7 +83,6 @@ function App() {
         <span>Authors Example · demo application — test data only</span>
         <span className="d-flex gap-3">
           <a href={accountUrl}>Account</a>
-          <a href={REGISTER_URL}>Register</a>
           <button type="button" onClick={() => setShowPrivacy(true)}>Privacy policy</button>
         </span>
       </footer>

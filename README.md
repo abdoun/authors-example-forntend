@@ -46,7 +46,6 @@ The rest are optional overrides:
 | `AUTHORS_API_URL` | Advanced: browser-facing path for the authors API | `/api` |
 | `AUTH_API_URL` | Advanced: browser-facing path for the auth API | `/auth` |
 | `USER_AUTH_URL` | Optional: base URL of `user-auth-react`, which owns sign-in/out, register and profile | `http://<current-host>:8083`, or `auth.<domain>` when this app is at `authors-example.<domain>` |
-| `USER_AUTH_REGISTER_URL` | Optional override for the "Register" link | `<USER_AUTH_URL>/register` |
 
 For this setup:
 
@@ -96,7 +95,6 @@ Example when the apps are reached through domain names:
 ```env
 FRONTEND_PORT=8088
 USER_AUTH_URL=https://auth.abdullah-alaswad.link
-# USER_AUTH_REGISTER_URL=https://auth.abdullah-alaswad.link/register
 ```
 
 Edit `.env` and recreate the container (no image rebuild needed):
@@ -133,10 +131,11 @@ means you don't have to configure it.
 
 ### Sharing the JWT with `user-auth-react`
 
-Sign-in and sign-out are handled entirely by `user-auth-react`, not by this
-app. The header's **Account** link opens `<USER_AUTH_URL>/profile` when you are
-signed in and `<USER_AUTH_URL>/login` when you are not; the **Register** link
-opens its register page. Both open in the same tab.
+Sign-in and registration are handled by `user-auth-react`. The header's
+**Account** link opens `<USER_AUTH_URL>/profile` when you are signed in and
+`<USER_AUTH_URL>/login` when you are not, in the same tab. **Logout** is
+available on the right side of this app's header when signed in: it clears the
+shared cookie and local token, so it signs you out of both frontends.
 
 No extra network is needed for this: the token is shared through the
 `jwt_token` cookie, which is scoped to a **host**, not a port. Open both apps
