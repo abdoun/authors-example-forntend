@@ -8,14 +8,3 @@ services:
       - "${FRONTEND_PORT:-8088}:80"
     env_file:
       - .env
-    networks:
-      - authors-net
-      - user-auth-network
-
-networks:
-  authors-net:
-    external: true
-    name: authors-net
-  user-auth-network:
-    external: true
-    name: user-auth-node-mysql_user-auth-network
