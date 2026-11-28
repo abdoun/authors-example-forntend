@@ -29,14 +29,15 @@ export const AUTHORS_API_URL = withoutTrailingSlash(
 export const authorsEndpoint = () => `${AUTHORS_API_URL}/authors`;
 
 /**
- * Where the "register" link points. Set USER_AUTH_REGISTER_URL in .env when
- * the companion app uses a different hostname than the one derived here.
- * Without it, IP/localhost visitors get the direct 8083 URL, and
- * authors-example.<domain> visitors get auth.<domain>/register.
+ * Base URL of the companion user-auth-react frontend, which owns sign-in,
+ * sign-out, registration and profile pages. Set USER_AUTH_URL in .env when
+ * it lives somewhere other than the derived default:
+ *   IP/localhost -> http://<same-host>:8083
+ *   authors-example.<domain> -> <scheme>://auth.<domain>
  */
-function defaultRegisterUrl() {
+function defaultAuthAppUrl() {
   if (typeof window === 'undefined') {
-    return 'http://localhost:8083/register';
+    return 'http://localhost:8083';
   }
 
   const { protocol, hostname } = window.location;
@@ -44,7 +45,7 @@ function defaultRegisterUrl() {
     hostname === 'localhost' || /^\d{1,3}(?:\.\d{1,3}){3}$/.test(hostname);
 
   if (isIpOrLocal) {
-    return `${protocol}//${hostname}:8083/register`;
+    return `http://${hostname}:8083`;
   }
 
   const prefix = 'authors-example.';
@@ -52,10 +53,19 @@ function defaultRegisterUrl() {
     ? `auth.${hostname.slice(prefix.length)}`
     : hostname;
 
-  return `${protocol}//${authHost}/register`;
+  return `${protocol}//${authHost}`;
 }
 
-export const REGISTER_URL =
+export const USER_AUTH_URL = withoutTrailingSlash(
+  runtimeConfig.USER_AUTH_URL ||
+    process.env.REACT_APP_USER_AUTH_URL ||
+    defaultAuthAppUrl()
+);
+
+// Override with USER_AUTH_REGISTER_URL in .env if the register page uses a
+// different host/path than <USER_AUTH_URL>/register.
+export const REGISTER_URL = withoutTrailingSlash(
   runtimeConfig.USER_AUTH_REGISTER_URL ||
-  process.env.REACT_APP_USER_AUTH_REGISTER_URL ||
-  defaultRegisterUrl();
+    process.env.REACT_APP_USER_AUTH_REGISTER_URL ||
+    `${USER_AUTH_URL}/register`
+);

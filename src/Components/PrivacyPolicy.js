@@ -76,9 +76,7 @@ const PrivacyPolicy = ({ show, onHide }) => (
       <Section number="5" title="Contact">
         <p>
           abdoun79@gmail.com ·{' '}
-          <a href="https://github.com/abdoun" target="_blank" rel="noopener noreferrer">
-            github.com/abdoun
-          </a>
+          <a href="https://github.com/abdoun">github.com/abdoun</a>
         </p>
       </Section>
     </Modal.Body>

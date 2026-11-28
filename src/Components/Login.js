@@ -76,7 +76,7 @@ const Login = ({setToken}) => {
         {!error.includes('Too many login attempts') && (
           <p className="mb-0 small">
             Don't have an account?{' '}
-            <a href={REGISTER_URL} target="_blank" rel="noopener noreferrer">
+            <a href={REGISTER_URL}>
               Register in user-auth-react
             </a>
           </p>
